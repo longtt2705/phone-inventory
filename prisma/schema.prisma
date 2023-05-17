@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Phone {
+  id                Int      @id @default(autoincrement())
+  modelId           Int      @map("model_id")
+  osVersionId       Int      @map("os_version_id")
+  dataMemory        Float    @map("data_memory")
+  yearOfManufacture DateTime @map("year_of_manufacture")
+  bodyColor         String   @map("body_color")
+  price             Float
+
+  os_version OsVersion @relation(fields: [osVersionId], references: [id])
+  Model      Model     @relation(fields: [modelId], references: [id])
+
+  @@map("phones")
+}
+
+model Manufacturer {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  models Model[]
+
+  @@map("manufacturers")
+}
+
+model Model {
+  id             Int    @id @default(autoincrement())
+  manufacturerId Int    @map("manufacturer_id")
+  name           String
+
+  manufacturer Manufacturer @relation(fields: [manufacturerId], references: [id])
+  phones       Phone[]
+
+  @@map("models")
+}
+
+model OsVersion {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  phones Phone[]
+
+  @@map("os_versions")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String
+  password String
+  roleId   Int    @map("role_id")
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@map("users")
+}
+
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  users User[]
+
+  @@map("roles")
+}
