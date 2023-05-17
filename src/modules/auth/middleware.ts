@@ -1,31 +1,53 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import service from './service';
+import { StatusCodes } from 'http-status-codes';
+import { ErrorResponse } from '../../utils/http';
+import { User } from '@prisma/client';
 
 interface DecodedUser {
-  // Define the structure of the decoded user object
-  // based on your specific JWT payload
-  id: string;
-  username: string;
+    id: number;
+    role: string;
 }
 
-const authenticateJWT = (
+const authenticateJWT = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const token = req.header('Authorization');
+    const token = req.header('Authorization').split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(StatusCodes.UNAUTHORIZED).json(ErrorResponse('Unauthorized', StatusCodes.UNAUTHORIZED));
     }
 
     try {
-        const decoded = jwt.verify(token, 'your-secret-key') as DecodedUser;
-        req.body.user = decoded;
+        const decoded = jwt.verify(token, 'secret-key') as DecodedUser;
+        const user = await service.getUserById(+decoded.id);
+        if (!user) {
+            return res.status(StatusCodes.UNAUTHORIZED).json(ErrorResponse('Invalid token', StatusCodes.UNAUTHORIZED));
+        }
+
+        req.body.user = user;
         next();
     } catch (error) {
-        return res.status(403).json({ error: 'Invalid token' });
+        console.error('[Auth.middleware.authenticateJWT]:', error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse('Internal server error', StatusCodes.INTERNAL_SERVER_ERROR));
     }
 };
 
-export default authenticateJWT;
+const checkUserRole = (role: string) => (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const user = req.body.user;
+
+    if ( user.role?.name !== role) {
+        return res.status(StatusCodes.FORBIDDEN).json(ErrorResponse('You dont have permission to perform this action', StatusCodes.FORBIDDEN));
+    }
+
+    next();
+};
+
+export default {authenticateJWT, checkUserRole};

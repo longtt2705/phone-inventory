@@ -11,16 +11,15 @@ datasource db {
 }
 
 model Phone {
-  id                Int      @id @default(autoincrement())
-  modelId           Int      @map("model_id")
-  osVersionId       Int      @map("os_version_id")
-  dataMemory        Float    @map("data_memory")
-  yearOfManufacture DateTime @map("year_of_manufacture")
-  bodyColor         String   @map("body_color")
+  id                Int    @id @default(autoincrement())
+  modelId           Int    @map("model_id")
+  osVersion         String @map("os_version")
+  dataMemory        Float  @map("data_memory")
+  yearOfManufacture Int    @map("year_of_manufacture")
+  bodyColor         String @map("body_color")
   price             Float
 
-  os_version OsVersion @relation(fields: [osVersionId], references: [id])
-  Model      Model     @relation(fields: [modelId], references: [id])
+  Model Model @relation(fields: [modelId], references: [id])
 
   @@map("phones")
 }
@@ -43,15 +42,6 @@ model Model {
   phones       Phone[]
 
   @@map("models")
-}
-
-model OsVersion {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  phones Phone[]
-
-  @@map("os_versions")
 }
 
 model User {
