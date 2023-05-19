@@ -13,5 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/inventory', inventoryRouter);
 
 app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
+
+export default app;
